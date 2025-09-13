@@ -18,75 +18,77 @@ import java.util.logging.Logger;
 
 public class LoginTest {
 
-    private WebDriver driver;
-    private WebDriverWait wait;
-    private static final Logger logger = Logger.getLogger(LoginTest.class.getName());
+	private WebDriver driver;
+	private WebDriverWait wait;
+	private static final Logger logger = Logger.getLogger(LoginTest.class.getName());
 
-    @BeforeClass
-    public void setUp() {
-        logger.info("Setting up WebDriver and Chrome options...");
+	@BeforeClass
+	public void setUp() {
+		logger.info("Setting up WebDriver and Chrome options...");
 
-        // Setup ChromeDriver using WebDriverManager
-        WebDriverManager.chromedriver().setup();
+		// Setup ChromeDriver using WebDriverManager
+		WebDriverManager.chromedriver().setup();
 
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("--headless"); // Good for CI
-        options.addArguments("--disable-gpu");
-        options.addArguments("--window-size=1920,1080");
-        options.addArguments("--no-sandbox");
-        options.addArguments("--disable-dev-shm-usage");
+		ChromeOptions options = new ChromeOptions();
+		options.addArguments("--headless=new"); // New headless mode (for Chrome v109+)
+		options.addArguments("--disable-gpu");
+		options.addArguments("--window-size=1920,1080");
+		options.addArguments("--no-sandbox");
+		options.addArguments("--disable-dev-shm-usage");
 
-        driver = new ChromeDriver(options);
-        wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+		driver = new ChromeDriver(options);
+		wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
-        logger.info("Opening the login page...");
-        driver.get("https://opensource-demo.orangehrmlive.com/web/index.php/auth/login");
-    }
+		logger.info("Opening the login page...");
+		driver.get("https://opensource-demo.orangehrmlive.com/web/index.php/auth/login");
+	}
 
-    @Test
-    public void verifyLoginPageTitle() {
-        logger.info("Verifying login page title...");
+	@Test(priority = 1)
+	public void verifyLoginPageTitle() {
+		logger.info("Verifying login page title...");
 
-        // Synchronization: wait for login box to appear
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("username")));
+		// Wait for username field (ensures page is loaded)
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("username")));
 
-        String expectedTitle = "OrangeHRM";
-        String actualTitle = driver.getTitle();
-        logger.info("Page Title: " + actualTitle);
+		String expectedTitle = "OrangeHRM";
+		String actualTitle = driver.getTitle();
+		logger.info("Page Title: " + actualTitle);
 
-        Assert.assertTrue(actualTitle.contains(expectedTitle), "Title did not match!");
-        logger.info("Login page title verification PASSED.");
-    }
+		Assert.assertTrue(actualTitle.contains(expectedTitle), "Title did not match!");
+		logger.info("Login page title verification PASSED.");
+	}
 
-    @Test
-    public void performLoginTest() {
-        logger.info("Performing login test...");
+	@Test(priority = 2)
+	public void performLoginTest() {
+		logger.info("Performing login test...");
 
-        // Wait for username field to be visible
-        WebElement username = wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("username")));
-        WebElement password = driver.findElement(By.name("password"));
-        WebElement loginBtn = driver.findElement(By.cssSelector("button[type='submit']"));
+		// Wait for username field and enter login credentials
+		WebElement username = wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("username")));
+		WebElement password = driver.findElement(By.name("password"));
+		WebElement loginBtn = driver.findElement(By.cssSelector("button[type='submit']"));
 
-        username.sendKeys("Admin");
-        password.sendKeys("admin123");
-        loginBtn.click();
+		username.clear();
+		username.sendKeys("Admin");
+		password.clear();
+		password.sendKeys("admin123");
+		loginBtn.click();
 
-        // Wait for dashboard or some post-login element
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("span.oxd-userdropdown-tab")));
+		// Wait for dashboard element
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("span.oxd-userdropdown-tab")));
 
-        String currentUrl = driver.getCurrentUrl();
-        logger.info("Current URL after login: " + currentUrl);
+		String currentUrl = driver.getCurrentUrl();
+		logger.info("Current URL after login: " + currentUrl);
 
-        Assert.assertTrue(currentUrl.contains("/dashboard"), "Login might have failed!");
-        logger.info("Login test PASSED.");
-    }
+		Assert.assertTrue(currentUrl.contains("/dashboard"), "Login might have failed!");
+		logger.info("Login test PASSED.");
+	}
 
-    @AfterClass
-    public void tearDown() {
-        logger.info("Tearing down the driver...");
-        if (driver != null) {
-            driver.quit();
-        }
-        logger.info("Driver closed.");
-    }
+	@AfterClass
+	public void tearDown() {
+		logger.info("Tearing down the driver...");
+		if (driver != null) {
+			driver.quit();
+		}
+		logger.info("Driver closed.");
+	}
 }
