@@ -5,6 +5,9 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  schedule:
+    - cron: '45 14 * * *'  # Runs every day at 8:15 PM IST (14:45 UTC)
+  workflow_dispatch:        # Optional: manual trigger
 
 jobs:
   run-tests:
